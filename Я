@@ -1,0 +1,241 @@
+2Модуль
+Номерной фонд
+Переименов.Сущ.Столбцы на англ. И добавляем столбцы
+Floor RoomNumber RoomCategory Room Price RoomId
+1 Этаж 101 1местный занят 1200 1
+2 Этаж 102 2местный свободен 1300 2
+3 Этаж 103 Люкс уборка 1500 3
++ДиаграммыБД->пр.кн.м->создать диагр.БД->да->все табл.добавить
+Создаем связи через ключи от Clients к Orders
+По полям ClientId-ClientId
+Спецификация INSERTи UPDATE вместо нет в обоих каскадно
+Сохраняем диагр. HotelERDiagramm
++ HotelERDiagramm->Создать запрос
+1стр SELECT COUNT(CASE WHEN RoomStatus = ‘занят’ THEN 1
+END)*100.0/COUNT(*)
+2стр. AS ‘PERCENT’
+3стр. FROM ROOMS
+(Кол-во занятых номеров/кол-во общих)*100%,
+Папка Data
+1.Добавить Нов.эл.->Данные->Модель
+ADO.NET.EDM(AlphaHotelContext)->CodeFirst из БД->далее-
+>ввод пароля->создать соедиенение->имя сервера->проверка
+подлинности SQLServer->Имя,пароль->Шифрование
+OPtionalFalse->Выбрать свою БД->проверить подключение-
+>ок->да,вкл.конф.данные->включаем все табл.кроме
+sysdiagrams->✓формировать
+Приложение WPF(NET.Framework)
+1.Задаем имя проекта и устанавливаем куда будет сохраняться
+2.Структура. Справа создаем папки (Data,Pages,Windows)
+3.Папка Window. Окна. Добавить новый элемент(Окно WPF)
+Dekstop, Authorization, ChangePassword, AddUser, EditUser
+4.Папка Page. Добавить->страницаWPF
+AdminPage, ManagerPage
+5.справа в спискеMainWindow удалить
+6. В странице App.xaml в коде MainWindow меняем на Windows/Dekstop.xaml
+7. Проверить запуск ПО
+8. в коде Dekstop.xaml.cs дописываем
+InitiliazeComponent();
+New Authorization().ShowDialog();
+Static Objects.desktop Frame = Desktop Frame;
+9.Слева добавляем Label-логин,пароль, TextBox-ввод текста, Combobox-роль,
+DatePicker-дата захода, Checkbox-галочка(пароль изменен)
+10.В коде присваиваем имена TbLogin,BtnLogin, CmbxRole, DtpLastLoginDate,
+ChkbxPassword, BtnAddUser
+<TextBox x: Name= «TbPassword» Horizontal…
+Меняем Title окно авторизации
+11.Ставим окно вывода по центру->справа внизу в общих свойствах->
+WindowStartup->CenterScreen
+12.Окно Dekstop дописываем код
+Title= «Рабочий стол» …
+<Grid>
+<Frame x:Name= «DekstopFrame»/>
+</Grid>
+Страница AddUser
+public partial class AddUser : Window
+{AlphaHotelContext db = new AlphaHotelContext();
+public AddUser()
+{InitializeComponent();
+CmbxRole.ItemsSource = db.Roles.ToList();
+CmbxRole. DisplayMemberPath = "Role Name";
+CmbxRole.SelectedValuePath = "RoleId";}
+private void BtnAddUser_Click(object sender, RoutedEventArgs e)
+{if(string.IsNullOrEmpty(TbLogin.Text) || string.IsNullOrEmpty(TbPassword.Text) ||
+string.IsNullOrEmpty(Cmbx Role.Text))
+{MessageBox.Show("Одно или несколько полей не заполнены");
+else if (db.Users.Where(User u=>u.UserName == TbLogin.Text).ToList().Count >0)
+{MessageBoxShow("Пользователь с таким логином уже существует");
+return;}
+else
+{db.Users.Add(new User
+{UserName = TbLogin.Text,
+Password = TbPassword.Text,
+RoleId = Convert.ToInt32(CmbxRole.SelectedValue),
+LastLoginDate = DtpLastLoginDate. DisplayDate,
+Password Changed = (bool)ChkbxPasswordChanged. IsChecked
+Blocked = ChkbxBlocked.IsChecked });
+db.SaveChanged}
+Static Objects.desktop Frame.Refresh();
+Static.Objects.dataGrid.ItemsSource = db.Users.ToList();
+this.Close();}
+catch (Exception ex) {
+MessageBox.Show(ex.Message); }}
+Заходим c#user.cs добавляем
+public bool PasswordChanged {get;set;} если что-то
+редактировали
+4.Data->добавить класс StaticObjects
+Internal class StaticObjects
+{
+Public Static User User;
+Public Static Frame dekstopFrame;
+Public static DataGrid dataGrid;}}
+Страница AdminPage
+namespace AlphaHotel.Pages
+{public partial class Mainpage : Page
+{AlphaHotelContext db = new Alpha Hotel Context();
+public Admin Page()
+{InitializeComponent();
+StaticObjects.dataGrid = DtGrid;
+Static.objects.dataGrid.ItemsSource = db.Users.ToList();}
+private void BtnAddUser_Click(object sender,
+RoutedEventArgs e){new AddUser().ShowDialog();}
+private void BtnEditUser_Click(object sender,
+RoutedEventArgs e){ User user = DtGrid.SelectedItem as User;
+EditUser edit User = new Edit User();
+editUser.user = user;
+editUser.ShowDialog();
+}
+private void BtnDeleteUser_Click(object sender,
+RoutedEventArgs e)
+{if (StaticObjects.user.UserId == (DtGrid.SelectedItem as
+User).UserId)
+{MessageBox Show("Перед удалением данного пользователя
+необходимо войти в систему под другим пользователем"}
+else
+{if (MessageBox.Show("Удалить запись?", "Удаление записи",
+MessageBoxButton.YesNo, MessageBoxImage. Question)
+==MessageBoxResult.Yes)
+{User user = DtGrid.SelectedItem as User;
+db.Users. Remove(user)};
+db. SaveChanges();
+Static.Objects.dataGrid.ItemsSource = db.Users.ToList();
+}}}}}
+Страница EditUser
+namespace AlphaHotel.Windows
+{public partial class Edit User : Window
+{public User user;
+public Edit User(user user)
+{this user = user;
+InitializeComponent();
+CmbxRole.ItemsSource = db.Roles.ToList();
+CmbxRole. DisplayMemberPath = "Role Name";
+CmbxRole.SelectedValuePath = "RoleId";
+TbLogin.Text = user.UserName.Trim();
+Password.Text = user.Password.Trim();
+Cmbx Role.Text = db.Roles.Find(user.RoleId).RoleName;
+DtpLastLoginDate. Text = user. LastLoginDate. ToString();
+ChkbxPasswordChanged.IsChecked = user.Password Changed;
+ChkbxBlocked.IsChecked = user.Blocked;}
+private void BtnEditUser_Click(object sender, RoutedEventArgs
+e)
+{try{
+if (string.IsNullOrEmpty(TbLogin.Text) ||
+string.IsNullOrEmpty(Password.Text) || string.
+IsNullOrEmpty(Cmbx Role.Text))
+{MessageBox.Show("Одно или несколько полей не
+заполнены");}
+else{User edit User = db.Users.Find(this.user.UserId);
+editUser. UserName = TbLogin.Text;
+editUser.Password= TbPassword.Text;
+editUser.RoleId = Convert.ToInt32(CmbxRole.SelectedValue);
+editUser. LastLoginDate = DtpLastLoginDate. DisplayDate;
+db.SaveChanges();}
+Static objects.dataGrid.ItemsSource = db.Users.ToList();
+this.Close();}
+catch (Exception ex)
+{MessageBox.Show(ex.Message);}}}}
+Кнопка войти windows/authorization.xaml
+public partial class Authorization : Window
+{Alpha Hotel Context db = new AlphaHotelContext();
+int attemptCoun = 0;
+public Authorization()
+{InitializeComponent();}
+private void BtnLogin_Click(object sender, RoutedEventArgs e)
+{if (string.IsNullOrEmpty(TbLogin.Text))
+{MessageBox.Show("Вы не ввели логин");
+Tbllogin.Focus();}
+else if (string.IsNullOrEmpty(TbPassword.Text))
+{MessageBox.Show("Вы не ввели пароль");
+TbPassword.Focus();}
+else
+{User user = db.Users.Where(User u=>u.UserName ==
+TbLogin.Text).FirstOrDefault();
+if (user == null) {
+MessageBox.Show("Такого логина нет в системе");
+return;}
+if((DateTime.Now - (DateTime)user.LastLoginDate). Days > 31)
+{MessageBox.Show("Слабая активность, пользователь заблокирован.
+Обратитесь к администратору
+return;}
+if (attemptCount >= 3)
+{ user.Blocked = true;
+db.SaveChanges();
+MessageBox.Show("Попытки входа исчерпаны, пользователь заблокирован");
+return;}
+if (user.Blocked==true) {
+MessageBox.Show("Пользователь заблокирован");
+return;}
+if (user.Password.trim() == Password.Text.Trim()) {
+Static objects.user = user;
+if (!user.Password Changed)
+{ChangePassword changePassword = new Change Password();
+changePassword.user = user;
+change Password.ShowDialog();
+else
+{user.LastLoginDate = DateTime.Now;
+db.SaveChanges();
+MessageBox.Show("Вы успешно авторизовались");
+if (Static objects.user.Role Id == 1)
+{ Static Objects.desktop Frame. Navigate(new Admin Page());
+this.Close();}
+else if (Static Objects.user.RoleId == 2)
+{ Static Objects.desktop Frame.Navigate(new Manager Page());
+this.Close(); }}}
+Else
+{attempt Count++;
+MessageBox.Show($"Вы ввели неверный пароль. Осталось попыток - {3 -
+attemptCount}");
+return;}}}}
+страница changedPassword
+namespace Alpha Hotel. Windows
+{public partial class ChangePassword : Window
+{public User user = new User();
+AlphaHotelContext db = new AlphaHotelContext();
+public ChangePassword()
+{InitializeComponent();}
+private void BtnChangePassword_Click(object sender, RoutedEventArgs e)
+{if (string.IsNullOrEmpty(TbOldPassword.Text))
+{MessageBox.Show("Введите старый пароль");
+Tb0ldPassword.Focus();
+return;}
+if (string.IsNullOrEmpty(TbNewPassword.Text))
+{MessageBox.Show("Введите новый пароль");
+TbNewPassword.Focus();
+return;}
+if (string.IsNullOrEmpty(TbConfirmPassword.Text))
+{MessageBox.Show("Введите подтверждение пароля");
+TbConfirmPassword.Focus();
+return;}
+if (TbOldPassword.Text != user Password/trim()) {
+MessageBox.Show("Введен неверный пароль");
+TbNewPassword.Focus();
+return;}
+if (TbNewPassword.Text ! == TbConfirmPassword.Text)
+{MessageBox.Show("Пароли не совпадают");
+TbNewPassword.Focus();}
+else {user.Password = TbNewPassword.Text;
+user.Password Changed = true;
+db.SaveChanges();
+MessageBox.Show("Теперь вы можете войти с новым паролем");
+this.Close();}}}}
+
